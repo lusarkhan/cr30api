@@ -1,0 +1,37 @@
+{
+  "name": "cr30api-app",
+  "version": "1.0.0",
+  "description": "CR30 RESTful API",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "keywords": [
+    "js",
+    "rest",
+    "api"
+  ],
+  "author": "LusarKhan",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.0",
+    "express": "^4.18.1",
+    "express-validator": "^6.14.2",
+    "mssql": "^8.1.2",
+    "nodemon": "^2.0.18",
+    "oracledb": "^5.4.0",
+    "translatte": "^3.0.1",
+    "uuid": "^8.3.2",
+    "words-to-numbers": "^1.5.1"
+  },
+  "devDependencies": {
+    "cors": "^2.8.5",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "request": "^2.88.2",
+    "restify": "^8.6.1"
+  }
+}
