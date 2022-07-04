@@ -16,12 +16,18 @@ let cntcounts;
 
 let rnd = Math.random()
 const tokenKey = '1a2b-3c4d-5e6f-7g8h-3c4d-5e6f-7g8h'
+let iamToken = ''
 let host, port;
 var sql = require('mssql');
 
 const fs = require('fs');
 const oracledb = require('oracledb');
 const dbConfig = require('./dbconfig.js');
+
+const cron = require('node-cron');
+
+const yandexPassportOauthToken = `AQAEA7qj-3chAATuwVsHVdbgv0DNrAYvWg-KJHs`
+
 
 var server = app.listen(8081, function () {
     host = server.address().address
@@ -314,7 +320,9 @@ app.use('/api/balance', function (req, res) {
                             message: "Поступление"
                         })
                     } else {
+                        console.log(balance)
                         return res.status(200).json({
+                            balance,
                             message: "Нет изменений"
                         })
                     }
@@ -338,9 +346,55 @@ app.use('/api/balance', function (req, res) {
 
 })
 
+//Получение IAM токена
+async function getIamToken() {
+    await (async () => {
+        try {
+            const request = await require('request');
+
+            var options = {
+                url: 'https://iam.api.cloud.yandex.net/iam/v1/tokens',
+                json: {
+                    "yandexPassportOauthToken": "AQAEA7qj-3chAATuwVsHVdbgv0DNrAYvWg-KJHs"
+                },
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': '*/*',
+                }
+            };
+
+            var callback = (error, response, body) => {
+                //console.log(body['iamToken']);
+                iamToken = body['iamToken']
+                console.log(iamToken)
+            }
+            request(options, callback);
+        } catch (error) {
+            console.log(error.response.body);
+        }
+
+    })();
+}
+
+getIamToken().then(r => this)
+
+//let timerId = setInterval(() => getIamToken(), '1m');
+
+/*var job = new CronJob(
+    '0 /1 * * * *',
+    getIamToken(),
+    null,
+    true,
+    'Europe/Astrakhan'
+);*/
+
+cron.schedule('0 */50 * * *', function () {
+    getIamToken().then(r => (this))
+});
 
 //РАСПОЗНОВАНИЕ ЛС ИЗ ТЕКСТА В ЦИФРУ
-app.post('/api/:token/pk_bot.lstonum', function (req, res) {
+app.post('/api/:token/pk_bot.texttonum', function (req, res) {
     async function run_translate() {
         req.params.token = tokenKey;
         let ls_text = String(req.body.lstext);
@@ -359,19 +413,19 @@ app.post('/api/:token/pk_bot.lstonum', function (req, res) {
                         folderId: "b1gnj3tqjnuor6rj0v2m"
                     },
                     method: 'POST',
-                    Authorization: 'Bearer t1.9euelZrLz57KxsyVzoqLjM-PkI-JnO3rnpWajo3Hz5ubxo3GjpiXl83JzZLl8_d3JRVq-e88TChL_N3z9zdUEmr57zxMKEv8.REn9DH7KeSCrPoA3A_PKFOuJ5s_lThneK1iii7czP1RSLxxjXnMPP2zXHDDVpQmaOBQxvFNsv_zemGM62WsNBg',
+                    //Authorization: 'Bearer '+iamToken,
                     headers: {
-                        'Authorization': 'Bearer t1.9euelZrLz57KxsyVzoqLjM-PkI-JnO3rnpWajo3Hz5ubxo3GjpiXl83JzZLl8_d3JRVq-e88TChL_N3z9zdUEmr57zxMKEv8.REn9DH7KeSCrPoA3A_PKFOuJ5s_lThneK1iii7czP1RSLxxjXnMPP2zXHDDVpQmaOBQxvFNsv_zemGM62WsNBg',
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + iamToken,
                         'Accept': 'text/plain',
                     }
                 };
 
                 var callback = (error, response, body) => {
                     lsnum_en = String(body['translations'][0]['text'])
-                    lsresult = String(wordsToNumbers(body['translations'][0]['text']))
+                    lsresult = String(wordsToNumbers(body['translations'][0]['text']), {fuzzy: false})
                     lsnum_converted = lsresult.split(' ').join('')
-                    console.log(lsnum_converted);
+                    console.log(lsnum_en);
                 }
                 request(options, callback);
             } catch (error) {
@@ -387,7 +441,6 @@ app.post('/api/:token/pk_bot.lstonum', function (req, res) {
         lsnum: lsnum_converted
     })
 })
-
 
 //ПРОВЕРКА НАЛИЧИЯ ЛС
 app.post('/api/:token/pk_bot.get_ls', function (req, res) {
