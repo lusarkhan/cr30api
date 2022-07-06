@@ -11,8 +11,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 let lsnum_en, lsnum_converted, lsresult;
-let lscount;            //Количество найденных ЛС
-let cntcounts;
+let lsCount;            //Количество найденных ЛС
+let cntCounts;
 
 let rnd = Math.random()
 const tokenKey = '1a2b-3c4d-5e6f-7g8h-3c4d-5e6f-7g8h'
@@ -24,10 +24,10 @@ const fs = require('fs');
 const oracledb = require('oracledb');
 const dbConfig = require('./dbconfig.js');
 
+
 const cron = require('node-cron');
 
 const yandexPassportOauthToken = `AQAEA7qj-3chAATuwVsHVdbgv0DNrAYvWg-KJHs`
-
 
 var server = app.listen(8081, function () {
     host = server.address().address
@@ -173,6 +173,7 @@ app.post('/api/account/auth', (req, res) => {
 
     run_auth();
 })
+
 
 /*app.get('/user', (req, res) => {
     if (req.user) return res.status(200).json(req.user)
@@ -444,69 +445,83 @@ app.post('/api/:token/pk_bot.texttonum', function (req, res) {
 
 //ПРОВЕРКА НАЛИЧИЯ ЛС
 app.post('/api/:token/pk_bot.get_ls', function (req, res) {
-    req.params.token = tokenKey;
-    let lsnum = String(req.body.ls);
-    //let lsnum = Number(req.body.ls);
-    let str_ls = lsnum.toString();
+    req.params.token = tokenKey
+    let lsNum = String(req.body.ls)
+    lsNum = lsNum.replace(/[^0-9,\s]/g, "")
+    let phoneNumberOrChatId = String(req.body.chatId)
 
-    if (str_ls.length == 9) {
-        async function run() {
+    let isnum = /^\d+$/.test(lsNum);
 
-            let connection;
+    if (isnum) {
+        let strLs = lsNum.toString();
 
-            try {
-                connection = await oracledb.getConnection(dbConfig);
+        if (strLs.length == 9) {
 
-                await (connection);
+            async function run() {
 
-                const sql =
-                    `select COUNT(*) AS LSCOUNT from pay_ls where NUM = :idls`;
+                let connection;
 
-                let result;
+                try {
+                    connection = await oracledb.getConnection(dbConfig);
 
-                result = await connection.execute(
-                    sql,
-                    [lsnum],
-                    {
-                        outFormat: oracledb.OUT_FORMAT_OBJECT
-                    }
-                );
-                lscount = result.rows[0]['LSCOUNT']
+                    await (connection);
 
-            } catch (err) {
-                console.error(err);
-            } finally {
-                if (connection) {
-                    try {
-                        await connection.close();
-                    } catch (err) {
-                        console.error(err);
+                    const sql =
+                        `select COUNT(*) AS LSCOUNT from pay_ls where NUM = :idls`;
+
+                    let result;
+
+                    result = await connection.execute(
+                        sql,
+                        [lsNum],
+                        {
+                            outFormat: oracledb.OUT_FORMAT_OBJECT
+                        }
+                    );
+
+                    lsCount = result.rows[0]['LSCOUNT']
+
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    if (connection) {
+                        try {
+                            await connection.close();
+                        } catch (err) {
+                            console.error(err);
+                        }
                     }
                 }
             }
-        }
 
-        run();
-        if (lscount > 0) {
-            return res.status(200).json({
-                lsnumber: str_ls,
-            })
+            run();
+
+            if (lsCount > 0) {
+                console.log('Найден ЛС = ' + strLs)
+                return res.status(200).json({
+                    lsnumber: strLs,
+                })
+            } else {
+                console.log('ЛС не найден ' + strLs)
+                return res.status(200).json({
+                    lsnumber: 0,
+                })
+            }
         } else {
+            console.log('должен быть 9 ' + strLs)
             return res.status(200).json({
-                lsnumber: 0,
+                lsnumber: 300,
+                status: false,
+                errmess: 'Внимание! Номер лицевого счета должен состоять из 9 цифр.',
             })
         }
     } else {
-
-        return res.status(200).json({
-            lsnumber: 300,
-            status: false,
-            errmess: 'Внимание! Номер лицевого счета должен состоять из 9 цифр.',
-        })
+        console.log('Not number ' + isnum)
     }
 })
 
 //ПРОВЕРКА НАЛИЧИЯ ИПУ
+//https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_act=3&_lssernum=${lsnumber}&_cntsernum=${cntsernumbr}&_phone_num=${chat_id}
 app.post('/api/:token/pk_bot.get_ipu', function (req, res, next) {
     req.params.token = tokenKey;
     let lsnum = req.body.ls;
@@ -570,11 +585,66 @@ app.post('/api/:token/pk_bot.get_ipu', function (req, res, next) {
 })
 
 //ПЕРЕДАЧА ПОКАЗАНИЙ
-app.post('/api/:token/pk_bot.put_cnt_value', function (req, res) {
-    req.params.token = tokenKey;
-    let lsnum = String(req.body.ls);
-    let serial_num = req.body.cntsernumber;
-    let short_val = Number(req.body.cntvalue);
+//https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_pok_act=3&_pok_lssernum=${lsnumber}&_pok_cntsernum=${cntsernumres}&_pok_cntvalue=${cntvalue}&_pok_phone=${chat_id}
+//
+
+app.put('/api/:token/pk_bot.put_cnt_value', function (req, res) {
+    req.params.token = tokenKey
+    let lsnum = String(req.body.ls)
+    let serial_num = req.body.cntsernumber
+    let short_val = Number(req.body.cntvalue)
+    let chat_id = Number(req.body.chatid)
+    let descrText = String(req.body.descr)
+    let userallow = Number(req.body.allow)
+
+    let requestIp = require('request-ip');
+
+    let clientIp = String(requestIp.getClientIp(req))
+
+    const sqlNLS = `alter session set nls_date_format = 'dd.mm.yyyy'`;
+
+    const sqlInsertValue = `INSERT INTO t_pok_bot ( SG_REG_ID, IP_ADDR, NUM, DF, DK, POK, STATUS, PHONE_NUM, DT_EDIT, DESCR ) ` +
+        `values (:sgregid, :ipaddr, :lsnum, :lsdf, :lsdk, :lspok, 0, :phone, sysdate, : lsdescr)`;
+
+    async function insertLog() {
+        let connection;
+
+        try {
+            connection = await oracledb.getConnection(dbConfig);
+
+            let resultNLS = await connection.execute(sqlNLS);
+
+
+            const result = await connection.execute(
+                sqlInsertValue,
+                {
+                    sgregid: 999999,
+                    ipaddr: '188.124.55.5',
+                    lsnum: lsnum,
+                    lsdf: serial_num,
+                    lsdk: null,
+                    lspok: short_val,
+                    phone: chat_id,
+                    lsdescr: descrText
+                },
+                {autoCommit: true}
+            );
+
+            console.log("Result is:", result.rowsAffected);
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            if (connection) {
+                try {
+                    await connection.close();
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+    }
+
 
     async function run() {
 
@@ -585,28 +655,53 @@ app.post('/api/:token/pk_bot.put_cnt_value', function (req, res) {
 
             await (connection);
 
-            const sql =
-                `select COUNT(*) AS CNTCOUNT from pay_counters where LSNUM = :idls and SERIAL_NUM = :idipu`;
+            const sqlShortValue =
+                `SELECT SHORT_VALUE FROM PAY_COUNTERS WHERE LSNUM = :idls and SERIAL_NUM = :idipu`;
 
-            let result;
 
-            result = await connection.execute(
-                sql,
+            let resultShortValue;
+
+            resultShortValue = await connection.execute(
+                sqlShortValue,
                 [lsnum, serial_num],
                 {
                     outFormat: oracledb.OUT_FORMAT_OBJECT
                 }
             );
-            let cntcount = result.rows[0]['CNTCOUNT']
-            if (cntcount > 0) {
-                return res.status(200).json({
-                    cntsernumres: serial_num,
-                })
+
+            let shortValResult = resultShortValue.rows[0]['SHORT_VALUE']
+            let valueResult = short_val - shortValResult
+            console.log('Разность = ' + valueResult)
+            if (userallow == 0) {
+                if (short_val < shortValResult) {
+                    console.log("Передаваемые показания меньше учтенных - " + shortValResult)
+                    return res.status(200).json({
+                        sendresult: 3001,
+                        status: false,
+                        errmess: "Передаваемые показания меньше учтенных",
+                    })
+                } else {
+                    if (valueResult >= 50) {
+                        return res.status(200).json({
+                            sendresult: 5001,
+                            status: false,
+                            errmess: "Большие показания"
+                        })
+                    } else {
+                        await insertLog()
+                        return res.status(200).json({
+                            sendresult: 2000,
+                            status: true,
+                            errmess: "OK"
+                        })
+                    }
+                }
             } else {
+                await insertLog()
                 return res.status(200).json({
-                    cntsernumres: 0,
-                    status: false,
-                    errmess: "Номер прибора учета не найден."
+                    sendresult: 2000,
+                    status: true,
+                    errmess: "Большие показания переданы"
                 })
             }
         } catch (err) {
@@ -624,7 +719,6 @@ app.post('/api/:token/pk_bot.put_cnt_value', function (req, res) {
 
     run();
 })
-
 
 app.use('/api/pk_bot.get_bot_session/:id', function (req, res) {
     let lsid = Number(req.params.id);
@@ -648,10 +742,16 @@ app.use('/api/pk_bot.get_bot_session/:id', function (req, res) {
                 sql,
                 [lsid],
                 {
-                    outFormat: oracledb.OUT_FORMAT_OBJECT
+                    outFormat: oracledb.OUT_FORMAT_OBJECT,
+                    dmlRowCounts: true
                 }
             );
-            res.json(result.rows);
+            const LSCOUNT = result.rows[0]['COUNT(*)']
+
+            return res.status(200).json({
+                lsnumber: LSCOUNT,
+                status: true
+            })
         } catch (err) {
             console.error(err);
         } finally {
