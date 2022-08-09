@@ -417,7 +417,7 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
     let lsnum_en, lsnum_converted, lsresult;
 
     async function run_translate() {
-        //req.params.token = tokenKey;
+        req.params.token = tokenKey;
         ls_text = req.body.lstext;
         let phoneNum = req.body.phonenum;
 
@@ -1515,14 +1515,14 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
 
         console.log(ls_text)
         //return ls_text
-        let pathName = `jsons/${phoneNum}`;
+        /*let pathName = `jsons/${phoneNum}`;
         if (!fs.existsSync(pathName)) {
             fs.mkdir(pathName, err => {
                 if (err) throw err; // не удалось создать папку
-                console.log('Папка успешно создана');
+                console.log('ЗАПИСЬ - Отсутствовала и Папка успешно создана');
             });
         } else {
-            console.log(`Error - Папка ${pathName} уже существует`)
+            console.log(`ЗАПИСЬ - Error - Папка ${pathName} уже существует`)
             var targetRemoveFiles = fs.readdirSync(`jsons/${phoneNum}`);
 
             for (var file in targetRemoveFiles) {
@@ -1532,15 +1532,20 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
 
             fs.rmdir(`jsons/${phoneNum}`, err => {
                 if (err) throw err; // не удалось удалить папку
-                console.log('Папка успешно удалена');
+                console.log('ЗАПИСЬ - Папка успешно удалена');
             });
 
             fs.mkdir(`jsons/${phoneNum}`, err => {
                 if (err) throw err; // не удалось создать папку
-                console.log('Папка успешно создана');
+                console.log('ЗАПИСЬ - Папка успешно создана после удаления');
             });
 
+        }*/
+        let fileName = `lsnum_yapi_json_${phoneNum}.json`;
+        if (fs.existsSync(fileName)) {
+            fs.unlinkSync(fileName);
         }
+
 
         await (async () => {
 
@@ -1569,17 +1574,22 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
                     lsnum_translated = body['translations'][0]['text'];
                     lsresult = String(wordsToNumbers(lsnum_translated), {fuzzy: false})
 
+                    lsresult = lsresult.replace(/[^0-9,\s]/g, '')
                     let lsnum_yapi_json = {lsnum: lsresult};
 
                     let data = JSON.stringify(lsnum_yapi_json);
+                    console.log(lsnum_yapi_json);
+                    //fs.writeFileSync('./' + pathName + '/lsnum_yapi_json.json', data);
+                    return res.status(200).json(lsnum_yapi_json);
 
-                    fs.writeFileSync('./' + pathName + '/lsnum_yapi_json.json', data);
+                    /*fs.writeFileSync(fileName, data);
                     console.log('-----Файл создан-----')
-                    data = fs.readFile('./' + pathName + '/lsnum_yapi_json.json', "utf8", function (error, data) {
-                        console.log("Асинхронное чтение файла");
+                    let dataJsonFile = fs.readFile(fileName, "utf8", function (error, data) {
+                        console.log("Асинхронное чтение файла ПОСЛЕ СОЗДАНИЯ");
                         if (error) throw error; // если возникла ошибка
                         console.log(data);  // выводим считанные данные
-                    });
+                        return res.status(200).json(data);
+                    });*/
 
                 }
                 request(options, callback);
@@ -1590,54 +1600,73 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
     }
 
     run_translate()
-    return res.status(205).send();
+
+    //return res.status(205).send();
 })
 
 //Подготовка Лицевого счета
 app.use('/api/:token/pk_bot.readjsonfile', function (req, res) {
     req.params.token = tokenKey
     var phoneNum = req.body.phonenum;
-    var data = '';
+    //var data = '';
     var lsnumJson = '';
+    let pathName = `jsons/${phoneNum}`;
+    let fileName = `./lsnum_yapi_json_${phoneNum}.json`;
+    var fileJson = '';
     console.log(phoneNum)
 
     async function readJsonFile() {
-        const lsnumJsonFile = `./jsons/${phoneNum}/lsnum_yapi_json.json`;
-        console.log('-----ЧТЕНИЕ ФАЙЛА-----')
-        /*data = fs.readFile(lsnumJsonFile, "utf8",function(error,data){
-             console.log("Асинхронное чтение файла");
-             if(error) throw error; // если возникла ошибка
-             console.log(data);  // выводим считанные данные
-             res.status(200).send(data);
-         });*/
+        //const lsnumJsonFile =`C:\\Users\\admin\\WebstormProjects\\cr30api\\jsons\\${phoneNum}\\lsnum_yapi_json.json`;
+        console.log('-----ОТКРЫТИЕ ЧТЕНИЕ ФАЙЛА -----')
+        fileJson = fs.readFileSync(fileName, "utf8",
+            function (error, data) {
+                console.log("Асинхронное чтение файла");
+                if (error) throw error; // если возникла ошибка
+                console.log(data);  // выводим считанные данные
+                lsnumJson = JSON.stringify(data);
 
 
-        if (!fs.existsSync(lsnumJsonFile)) {
-            return res.status(200).send({
-                lsnum: 0
             });
-        } else {
-            data = fs.readFileSync(lsnumJsonFile, "utf8");
+        console.log('После чтения --- ' + fileJson)
+        lsnumJson = JSON.parse(fileJson);
 
-            lsnumJson = JSON.parse(data);
+        //if (!fileJson) {
+        //    console.log('ФАЙЛ НЕ СУЩЕСТВУЕТ')
+        //   return res.status(200).json({
+        //       lsnum: 0
+        //    });
+        //}
+        /*else {
+            console.log('ФАЙЛ СУЩЕСТВУЕТ -> ЧИТАЕМ ФАЙЛ')
+            const dataFile = fs.readFileSync(fileName, "utf8");
 
-            var targetRemoveFiles = fs.readdirSync(`jsons/${phoneNum}`);
+            console.log(dataFile)
 
-            for (var file in targetRemoveFiles) {
-                fs.unlinkSync(`jsons/${phoneNum}/` + targetRemoveFiles[file]);
-            }
+            lsnumJson = JSON.stringify(dataFile);
+            console.log(lsnumJson)
 
-            fs.rmdir(`jsons/${phoneNum}`, err => {
-                if (err) throw err; // не удалось удалить папку
-                console.log('Папка успешно удалена');
-            });
-            //Отправляем ответ с данными из файла
-            return res.status(200).send(lsnumJson);
-        }
+            return res.status(200).json(lsnumJson);*/
+
+
+        //var targetRemoveFiles = fs.readdirSync(`jsons/${phoneNum}`);
+
+        //for (var file in targetRemoveFiles) {
+        //     fs.unlinkSync(`./jsons/${phoneNum}/` + targetRemoveFiles[file]);
+        // }
+
+        /*fs.rmdir(`jsons/${phoneNum}`, err => {
+            if (err) throw err; // не удалось удалить папку
+            console.log('После чтения папка успешно удалена');
+        });*/
+        //Отправляем ответ с данными из файла
+        //return res.status(200).json(lsnumJson);
+        //}
+
     }
 
-    setInterval(readJsonFile, 3000);
-
+    readJsonFile();
+    return res.status(200).json(lsnumJson);
+    // next()
 })
 
 
@@ -1667,8 +1696,8 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
     req.params.token = tokenKey
     let lsNum = String(req.body.ls)
 
-    lsNumSplited = lsNum.split(' ').join('');
-    lsNum = lsNumSplited.replace(/[^0-9,\s]/g, '')
+    lsNum = lsNum.split(' ').join('');
+    lsNum = lsNum.replace(/[^0-9,\s]/g, '')
     //console.log(lsNum)
 
     let isnum = /^\d+$/.test(lsNum);
@@ -1702,6 +1731,17 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
 
                     lsCount = result.rows[0]['LSCOUNT']
 
+                    if (lsCount > 0) {
+                        console.log('Найден ЛС = ' + strLs)
+                        return res.status(200).json({
+                            lsnumber: strLs
+                        })
+                    } else {
+                        console.log('ЛС не найден ' + strLs)
+                        return res.status(200).json({
+                            lsnumber: 0,
+                        })
+                    }
                 } catch (err) {
                     console.error(err);
                 } finally {
@@ -1717,17 +1757,7 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
 
             run();
 
-            if (lsCount > 0) {
-                console.log('Найден ЛС = ' + strLs)
-                return res.status(200).json({
-                    lsnumber: strLs,
-                })
-            } else {
-                console.log('ЛС не найден ' + strLs)
-                return res.status(200).json({
-                    lsnumber: 0,
-                })
-            }
+
         } else {
             console.log('должен быть 9 ' + strLs)
             return res.status(200).json({
@@ -1743,13 +1773,16 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
 
 //ПРОВЕРКА НАЛИЧИЯ ИПУ
 //https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_act=3&_lssernum=${lsnumber}&_cntsernum=${cntsernumbr}&_phone_num=${chat_id}
-app.post('/api/:token/pk_bot.get_ipu', function (req, res, next) {
+app.use('/api/:token/pk_bot.get_ipu', function (req, res) {
     req.params.token = tokenKey;
-    let lsnum = req.body.ls;
-    let serial_num = req.body.cntsernumber;
-    //let str_ls = lsnum.toString();
-    //let str_serial_num = serial_num.toString();
+    let lsNum = req.body.ls;
+    let cntSerialNum = String(req.body.cntsernumber);
 
+    lsNum = lsNum.split(' ').join('');
+    lsNum = lsNum.replace(/[^0-9,\s]/g, '')
+
+    cntSerialNum = cntSerialNum.split(' ').join('');
+    cntSerialNum = cntSerialNum.replace(/[^0-9,\s]/g, '')
 
     async function run() {
 
@@ -1767,7 +1800,7 @@ app.post('/api/:token/pk_bot.get_ipu', function (req, res, next) {
 
             result = await connection.execute(
                 sql,
-                [lsnum, serial_num],
+                [lsNum, cntSerialNum],
                 {
                     outFormat: oracledb.OUT_FORMAT_OBJECT
                 }
@@ -1778,14 +1811,14 @@ app.post('/api/:token/pk_bot.get_ipu', function (req, res, next) {
             if (cntcount > 0) {
 
                 return res.status(200).json({
-                    serial_num
+                    serial_num: cntSerialNum
                 })
             } else {
                 console.log('3-ИПУ не найдено: ' + cntcount);
                 return res.status(200).json({
                     serial_num: 0,
                     status: false,
-                    errmess: "Номер прибора учета не найден."
+                    errmess: `Прибор учета с номером ${cntSerialNum} не найден.`
                 })
             }
 
