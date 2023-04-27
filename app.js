@@ -220,7 +220,7 @@ app.post('/api/user', (req, res) => {
 })*/
 
 /*app.get('/api/sale', function (req, res) {
-    sql.connect('Server=10.3.1.3,1433;Database=*****;User Id=sa;Password=*******;Encrypt=false', function () {
+    sql.connect('Server=10.3.1.3,1433;Database=;User Id=sa;Password=;Encrypt=false', function () {
         var request = new sql.Request();
         request.query('SELECT * FROM [communa].[dbo].[t_recline] where recdate like \'%2022-07-14%\'  order by recdate, rectime', function (err, resp) {
             if (err) console.log(err);
@@ -287,10 +287,10 @@ app.use('/api/balance', function (req, res) {
                 var options = {
                     url: 'https://business.tinkoff.ru/openapi/api/v3/bank-accounts',
                     method: 'GET',
-                    Authorization: 'Bearer t._FlApN6LT6wbk1ouD5M2dezOavJZoTzOO-Zx9TYZE-vwH9z5MeslYYAg9d7xemgyxYlX3MsLhdFsQaUGZYV_uA',
+                    Authorization: 'Bearer',
                     headers: {
-                        'Authorization': 'Bearer t._FlApN6LT6wbk1ouD5M2dezOavJZoTzOO-Zx9TYZE-vwH9z5MeslYYAg9d7xemgyxYlX3MsLhdFsQaUGZYV_uA',
-                        'accountNumber': '40802810400003198839',
+                        'Authorization': 'Bearer',
+                        'accountNumber': '',
                         'Content-Type': 'application/json',
                     }
                 };
@@ -343,7 +343,7 @@ async function getIamToken() {
             var options = {
                 url: 'https://iam.api.cloud.yandex.net/iam/v1/tokens',
                 json: {
-                    "yandexPassportOauthToken": "AQAEA7qj-3chAATuwVsHVdbgv0DNrAYvWg-KJHs"
+                    "yandexPassportOauthToken": ""
                 },
                 method: 'POST',
                 headers: {
