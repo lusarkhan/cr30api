@@ -21,12 +21,14 @@
     "body-parser": "^1.20.0",
     "cron": "^2.0.0",
     "express": "^4.18.1",
+    "express-session": "^1.17.3",
     "express-validator": "^6.14.2",
     "got": "^12.3.0",
     "mssql": "^8.1.2",
     "node-libcurl": "^2.3.4",
     "nodemon": "^2.0.18",
     "oracledb": "^5.4.0",
+    "redis": "^4.6.5",
     "request-ip": "^3.0.2",
     "translatte": "^3.0.1",
     "uuid": "^8.3.2",
@@ -35,9 +37,12 @@
   "devDependencies": {
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "csurf": "^1.11.0",
     "http-errors": "^2.0.0",
+    "ioredis": "^5.3.2",
     "jsonwebtoken": "^8.5.1",
     "node-cron": "^3.0.1",
+    "promise": "^8.3.0",
     "request": "^2.88.2",
     "restify": "^8.6.1"
   }

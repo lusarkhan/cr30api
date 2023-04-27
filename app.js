@@ -36,7 +36,7 @@ const cron = require('node-cron');
 
 const yandexPassportOauthToken = `AQAEA7qj-3chAATuwVsHVdbgv0DNrAYvWg-KJHs`
 
-var server = app.listen(8081, function () {
+var server = app.listen(8082, function () {
     host = server.address().address
     port = server.address().port
 
@@ -100,7 +100,7 @@ app.post('/api/account/auth', (req, res) => {
         let login = String(req.body.login);
 
         let passwd = String(req.body.password);
-
+        console.log(login)
         let connection;
 
         try {
@@ -109,7 +109,7 @@ app.post('/api/account/auth', (req, res) => {
             await (connection);
 
             const sql =
-                `select COUNT(ID) AS ID from SG_REG where LOGIN = :lgn and PASS = :pwd order by id desc`;
+                `select COUNT(ID) AS ID from SG_REG where LOGIN = :lgn  order by id desc`;
 
             let result;
 
@@ -120,6 +120,7 @@ app.post('/api/account/auth', (req, res) => {
                     outFormat: oracledb.OUT_FORMAT_OBJECT,
                 }
             );
+
             let login_count = result.rows[0]['ID'];
 
             if (login_count > 0) {
@@ -161,6 +162,7 @@ app.post('/api/account/auth', (req, res) => {
                 }
 
             } else {
+                console.log('User not found');
                 return res.status(404).json({message: 'User not found'})
             }
 
@@ -180,7 +182,6 @@ app.post('/api/account/auth', (req, res) => {
 
     run_auth();
 })
-
 
 /*app.get('/user', (req, res) => {
     if (req.user) return res.status(200).json(req.user)
@@ -297,7 +298,8 @@ app.use('/api/balance', function (req, res) {
                 var callback = (error, response, body) => {
                     //otb=String(body['balance'['balance']['otb']})
                     var obj = JSON.parse(body);
-                    var balance = Number(obj[0]['balance']['otb'])
+                    return res.json(obj);
+                    /*var balance = Number(obj[0]['balance']['otb'])
                     var summa = new Number
                     summa = 26617.98
                     if (summa < balance) {
@@ -311,7 +313,7 @@ app.use('/api/balance', function (req, res) {
                             balance,
                             message: "Нет изменений"
                         })
-                    }
+                    }*/
                     //var keys = Object.keys(obj);
                     // for (var i = 0; i < keys.length; i++) {
 
@@ -1775,6 +1777,7 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
 //https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_act=3&_lssernum=${lsnumber}&_cntsernum=${cntsernumbr}&_phone_num=${chat_id}
 app.use('/api/:token/pk_bot.get_ipu', function (req, res) {
     req.params.token = tokenKey;
+    console.log('dfdfdfdf')
     let lsNum = req.body.ls;
     let cntSerialNum = String(req.body.cntsernumber);
 
