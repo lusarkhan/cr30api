@@ -1,6 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser'); // CSRF Body parsing
+const bodyParser = require('body-parser');
 var csrf = require('csurf');
 var session = require('express-session')
 
@@ -11,10 +11,10 @@ const port = 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-var lsCount;            //Количество найденных ЛС
+var lsCount;       
 
 let rnd = Math.random()
-const tokenKey = '1a2b-3c4d-5e6f-7g8h-3c4d-5e6f-7g8h'
+const tokenKey = 'token'
 
 const fs = require('fs');
 const oracledb = require('oracledb');
@@ -42,8 +42,8 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname));
 app.use(
     session({
-        secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-        keys: ['wehsdjhkj2623jkhs848dg848sg'],
+        secret: "thisismysecrctekey",
+        keys: ['keyskeyskeys'],
         resave: false,
         cookieName: 'demo-session',
         //duration: 30 * 60 * 1000,
@@ -60,8 +60,6 @@ const isAuthenticated = (session) => {
 
 // Get all ls
 app.get("/api/v2/ls", csrfProtect, (req, res) => {
-    //return res.status(401).send({status: 'error', msg: "LS required.", csrfToken: req.csrfToken()});
-    // res.render('send', { csrfToken: req.csrfToken() })
     session = req.session;
     if (session.userid) {
         res.send("Welcome User <a href=\'/logout'>click to logout</a>");
@@ -69,10 +67,8 @@ app.get("/api/v2/ls", csrfProtect, (req, res) => {
         res.sendFile('index.html', {root: __dirname})
 });
 
-
 // Get LS count by LS_NUM
 app.get("/api/v2/ls/:id", csrfProtect, (req, res) => {
-    //const ls_item = ls.find(i => i.num === req.params.id); //parseInt()
     let lsNum = req.params.id;
 
     if (!lsNum) {
@@ -115,7 +111,6 @@ app.get("/api/v2/ls/:id", csrfProtect, (req, res) => {
 
                         if (lsCount > 0) {
                             const token = req.csrfToken();
-                            console.log('ЛС найден ' + strLs + ' Token = ' + token)
                             return res.status(200).json({
                                 lsnumber: strLs
                             });
@@ -141,10 +136,7 @@ app.get("/api/v2/ls/:id", csrfProtect, (req, res) => {
                         }
                     }
                 }
-
                 run();
-
-
             } else {
                 console.log('должен быть 9 ' + strLs)
                 return res.status(401).json({
@@ -169,19 +161,12 @@ app.get("/api/v2/ls/:lsNum/counters", csrfProtect, (req, res) => {
     lsNum = lsNum.split(' ').join('');
     lsNum = lsNum.replace(/[^0-9,\s]/g, '')
 
-
-    //let isnum = /^\d+$/.test(lsNum);
-    //console.log(isnum.length)
     if (lsNum.length === 9) {
-        console.log(lsNum)
         let strLs = lsNum.toString();
 
         if (strLs.length === 9) {
-
             async function run() {
-
                 let connection;
-
                 try {
                     connection = await oracledb.getConnection(dbConfig);
 
@@ -203,11 +188,6 @@ app.get("/api/v2/ls/:lsNum/counters", csrfProtect, (req, res) => {
                     var lsCount = result.rows[0]['LSCOUNT'];
 
                     if (lsCount > 0) {
-                        /*console.log('ЛС найден ' + strLs)
-                        return res.status(200).json({
-                            lsnumber: strLs
-                        });*/
-
                         const sqlGetCounters =
                             `select * from pay_counters where LSNUM = :idls`;
 
@@ -222,8 +202,6 @@ app.get("/api/v2/ls/:lsNum/counters", csrfProtect, (req, res) => {
                         );
 
                         for (var i = 0; i <= resultGetCounters.rows.length; i++) {
-                            //return res.status(200).json(resultGetCounters.rows);
-                            //res.contentType('application/json').status(200).send(JSON.stringify(result.rows));
                             let dataP = JSON.stringify()
                             return res.status(200).json({
                                 type: "success",
@@ -234,7 +212,6 @@ app.get("/api/v2/ls/:lsNum/counters", csrfProtect, (req, res) => {
                         }
 
                     } else {
-                        console.log('ЛС не найден ' + strLs)
                         return res.status(200).json({
                             lsnumber: 0,
                             status: 'error',
@@ -253,12 +230,8 @@ app.get("/api/v2/ls/:lsNum/counters", csrfProtect, (req, res) => {
                     }
                 }
             }
-
             run();
-
-
         } else {
-            console.log('должен быть 9 ' + strLs)
             return res.status(401).json({
                 lsnumber: 401,
                 status: 'error',
@@ -285,10 +258,7 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId", csrfProtect, (req, res) => {
     cntNum = cntNum.split(' ').join('');
     cntNum = cntNum.replace(/[^0-9,\s]/g, '')
 
-    //let isnum = /^\d+$/.test(lsNum);
-    //console.log(isnum.length)
     if (lsNum.length === 9) {
-        console.log(lsNum)
         let strLs = lsNum.toString();
 
         if (strLs.length === 9) {
@@ -318,11 +288,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId", csrfProtect, (req, res) => {
                     var lsCount = result.rows[0]['LSCOUNT'];
 
                     if (lsCount > 0) {
-                        /*console.log('ЛС найден ' + strLs)
-                        return res.status(200).json({
-                            lsnumber: strLs
-                        });*/
-
                         const sqlGetCounters =
                             `select * from pay_counters where LSNUM = :idls and SERIAL_NUM = : idnum`;
 
@@ -338,8 +303,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId", csrfProtect, (req, res) => {
 
                         if (resultGetCounters.rows.length > 0) {
                             for (var i = 0; i < resultGetCounters.rows.length; i++) {
-                                //return res.status(200).json(resultGetCounters.rows);
-                                //res.contentType('application/json').status(200).send(JSON.stringify(result.rows));
                                 return res.status(200).json({
                                     success: "true",
                                     msg: "ПУ",
@@ -347,7 +310,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId", csrfProtect, (req, res) => {
                                 });
                             }
                         } else {
-                            console.log('ПУ не найден ' + strLs)
                             return res.status(200).json({
                                 lsnumber: 0,
                                 status: 'error',
@@ -355,7 +317,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId", csrfProtect, (req, res) => {
                             });
                         }
                     } else {
-                        console.log('ЛС не найден ' + strLs)
                         return res.status(200).json({
                             lsnumber: 0,
                             status: 'error',
@@ -379,7 +340,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId", csrfProtect, (req, res) => {
 
 
         } else {
-            console.log('должен быть 9 ' + strLs)
             return res.status(401).json({
                 lsnumber: 401,
                 status: 'error',
@@ -406,7 +366,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId/edit", csrfProtect, (req, res) => {
     cntNum = cntNum.replace(/[^0-9,\s]/g, '')
 
     if (lsNum.length === 9) {
-        console.log(lsNum)
         let strLs = lsNum.toString();
 
         if (strLs.length === 9) {
@@ -436,11 +395,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId/edit", csrfProtect, (req, res) => {
                     var lsCount = result.rows[0]['LSCOUNT'];
 
                     if (lsCount > 0) {
-                        /*console.log('ЛС найден ' + strLs)
-                        return res.status(200).json({
-                            lsnumber: strLs
-                        });*/
-
                         const sqlGetCounters =
                             `select * from pay_counters where LSNUM = :idls and SERIAL_NUM = : idnum`;
 
@@ -457,8 +411,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId/edit", csrfProtect, (req, res) => {
                         count();
                         if (resultGetCounters.rows.length > 0) {
                             for (var i = 0; i < resultGetCounters.rows.length; i++) {
-                                //return res.status(200).json(resultGetCounters.rows);
-                                //res.contentType('application/json').status(200).send(JSON.stringify(result.rows));
                                 return res.status(200).send(`<b>Редактирование ПУ № ${cntNum}</b>`);
                             }
                         } else {
@@ -470,7 +422,6 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId/edit", csrfProtect, (req, res) => {
                             });
                         }
                     } else {
-                        console.log('ЛС не найден ' + strLs)
                         return res.status(200).json({
                             lsnumber: 0,
                             status: 'error',
@@ -489,10 +440,7 @@ app.get("/api/v2/ls/:lsNum/counter/:cntId/edit", csrfProtect, (req, res) => {
                     }
                 }
             }
-
             run();
-
-
         } else {
             console.log('должен быть 9 ' + strLs)
             return res.status(401).json({
@@ -553,8 +501,6 @@ app.get("/api/v2/stat.pok_bot=stat", csrfProtect, (req, res) => {
                 pok_bot: pokBotCount,
                 pok_lk: pokLKCount
             });
-
-
         } catch (err) {
             console.error(err);
         } finally {
@@ -567,7 +513,6 @@ app.get("/api/v2/stat.pok_bot=stat", csrfProtect, (req, res) => {
             }
         }
     }
-
     run();
 });
 
@@ -616,8 +561,6 @@ app.get("/api/v2/stat.pok_bot=stat-period-week", csrfProtect, (req, res) => {
             res.setHeader("Content-Type", "application/json");
             res.writeHead(200);
             res.end(JSON.stringify({pokPeriodValues}, null, 3));
-
-
         } catch (err) {
             console.error(err);
         } finally {
@@ -630,7 +573,6 @@ app.get("/api/v2/stat.pok_bot=stat-period-week", csrfProtect, (req, res) => {
             }
         }
     }
-
     run();
 });
 
@@ -697,7 +639,6 @@ app.get("/api/v2/stat.pok_bot=stat-period-week-lk", csrfProtect, (req, res) => {
     run();
 });
 
-
 //API-запрос статистика переданных показаний за период телефонный бот
 app.get("/api/v2/stat.pok_bot=stat-period-telbot", csrfProtect, (req, res) => {
     async function run() {
@@ -743,8 +684,6 @@ app.get("/api/v2/stat.pok_bot=stat-period-telbot", csrfProtect, (req, res) => {
             res.setHeader("Content-Type", "application/json");
             res.writeHead(200);
             res.end(JSON.stringify({pokPeriodValues}, null, 3));
-
-
         } catch (err) {
             console.error(err);
         } finally {
@@ -757,7 +696,6 @@ app.get("/api/v2/stat.pok_bot=stat-period-telbot", csrfProtect, (req, res) => {
             }
         }
     }
-
     run();
 });
 
@@ -791,7 +729,6 @@ app.get("/api/v2/stat.pok_bot=stat-period-lk", csrfProtect, (req, res) => {
                  )
                  group by dt order by dt`;
 
-
             let result_sql_pok_period;
 
             result_sql_pok_period = await connection.execute(
@@ -801,13 +738,10 @@ app.get("/api/v2/stat.pok_bot=stat-period-lk", csrfProtect, (req, res) => {
                     outFormat: oracledb.OUT_FORMAT_OBJECT
                 }
             );
-
             var pokPeriodValues = result_sql_pok_period.rows;
             res.setHeader("Content-Type", "application/json");
             res.writeHead(200);
             res.end(JSON.stringify({pokPeriodValues}, null, 3));
-
-
         } catch (err) {
             console.error(err);
         } finally {
@@ -838,7 +772,6 @@ app.get("/api/v2/ls/:ls_id/:cnt_id", csrfProtect, (req, res) => {
 
     lsNum = lsNum.split(' ').join('');
     lsNum = lsNum.replace(/[^0-9,\s]/g, '')
-    //console.log(lsNum)
 
     let isnum = /^\d+$/.test(lsNum);
 
@@ -872,12 +805,10 @@ app.get("/api/v2/ls/:ls_id/:cnt_id", csrfProtect, (req, res) => {
                     lsCount = result.rows[0]['LSCOUNT']
 
                     if (lsCount > 0) {
-                        console.log('Найден ЛС = ' + strLs)
                         return res.status(200).json({
                             lsnumber: strLs
                         })
                     } else {
-                        console.log('ЛС не найден ' + strLs)
                         return res.status(200).json({
                             lsnumber: 0,
                         })
@@ -899,7 +830,6 @@ app.get("/api/v2/ls/:ls_id/:cnt_id", csrfProtect, (req, res) => {
 
 
         } else {
-            console.log('должен быть 9 ' + strLs)
             return res.status(200).json({
                 lsnumber: 300,
                 status: false,
@@ -916,10 +846,8 @@ app.get("/api/v2/ls/:ls_id/:cnt_id", csrfProtect, (req, res) => {
 
 
 //ПРОВЕРКА НАЛИЧИЯ ИПУ
-//https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_act=3&_lssernum=${lsnumber}&_cntsernum=${cntsernumbr}&_phone_num=${chat_id}
 app.use('/api/:token/pk_bot.get_ipu', csrfProtect, function (req, res) {
     req.params.token = tokenKey;
-    console.log('dfdfdfdf')
     let lsNum = req.body.ls;
     let cntSerialNum = String(req.body.cntsernumber);
 
@@ -951,7 +879,6 @@ app.use('/api/:token/pk_bot.get_ipu', csrfProtect, function (req, res) {
                 }
             );
             let cntcount = result.rows[0]['CNTCOUNT'];
-            console.log('1- Найдено ИПУ количество: ' + cntcount);
 
             if (cntcount > 0) {
 
@@ -959,7 +886,6 @@ app.use('/api/:token/pk_bot.get_ipu', csrfProtect, function (req, res) {
                     serial_num: cntSerialNum
                 })
             } else {
-                console.log('3-ИПУ не найдено: ' + cntcount);
                 return res.status(200).json({
                     serial_num: 0,
                     status: false,
