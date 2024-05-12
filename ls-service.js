@@ -41,12 +41,10 @@ class LsService {
                         var lsCount = result.rows[0]['LSCOUNT'];
 
                         if (lsCount > 0) {
-                            console.log('ЛС найден ' + strLs)
                             return ({
                                 lsnumber: strLs
                             });
                         } else {
-                            console.log('ЛС не найден ' + strLs)
                             return {
                                 lsnumber: 0,
                             }
@@ -63,12 +61,8 @@ class LsService {
                         }
                     }
                 }
-
                 run();
-
-
             } else {
-                console.log('должен быть 9 ' + strLs)
                 return {
                     lsnumber: 300,
                     status: false,
