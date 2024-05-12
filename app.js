@@ -1,4 +1,3 @@
-
 const express = require('express'),
     app = express(),
     crypto = require('crypto'),
@@ -12,8 +11,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 app.use(express.static(__dirname + "/"));
 
-//let lsnum_en, lsnum_converted, lsresult;
-var lsCount;            //Количество найденных ЛС
+var lsCount;
 var cntCounts;
 var lsnum_translated;
 var a = [];
@@ -23,8 +21,8 @@ var lsNum;
 var lsNumSplited;
 
 let rnd = Math.random()
-const tokenKey = '1a2b-3c4d-5e6f-7g8h-3c4d-5e6f-7g8h'
-let iamToken = ''
+const tokenKey = 'tokenKey'
+let iamToken = 'iamToken'
 let host, port;
 var sql = require('mssql');
 
@@ -34,7 +32,7 @@ const dbConfig = require('./dbconfig.js');
 
 const cron = require('node-cron');
 
-const yandexPassportOauthToken = `AQAEA7qj-3chAATuwVsHVdbgv0DNrAYvWg-KJHs`
+const yandexPassportOauthToken = `yandexPassportOauthToken`
 
 var server = app.listen(8082, function () {
     host = server.address().address
@@ -56,9 +54,9 @@ app.use(cookieParser('FtrIfgkg887%$9fF'));
 'use strict';
 
 let libPath;
-if (process.platform === 'win32') {           // Windows
+if (process.platform === 'win32') {
     libPath = 'C:\\instantclient_21_6';
-} else if (process.platform === 'darwin') {   // macOS
+} else if (process.platform === 'darwin') {
     libPath = process.env.HOME + '/Downloads/instantclient_19_8';
 }
 if (libPath && fs.existsSync(libPath)) {
@@ -100,7 +98,6 @@ app.post('/api/account/auth', (req, res) => {
         let login = String(req.body.login);
 
         let passwd = String(req.body.password);
-        console.log(login)
         let connection;
 
         try {
@@ -183,158 +180,6 @@ app.post('/api/account/auth', (req, res) => {
     run_auth();
 })
 
-/*app.get('/user', (req, res) => {
-    if (req.user) return res.status(200).json(req.user)
-    else
-        return res
-            .status(401)
-            .json({ message: 'Not authorized' })
-})*/
-
-//app.use('/api', indexRouter)
-
-
-/*app.get('/', (req, res) => {
-    res.status(200).type('text/plain')
-    res.send('Home page')
-})*/
-
-/*app.get('/about', (req, res) => {
-    res.status(200).type('text/plain')
-    res.send('About page')
-})
-
-app.post('/api/admin', (req, res) => {
-    res.status(200).type('text/plain')
-    res.send('Create admin request')
-})
-
-app.post('/api/user', (req, res) => {
-    res.status(200).type('text/plain')
-    res.send('Create user request')
-})*/
-
-/*app.use((req, res, next) => {
-    res.status(404).type('text/plain')
-    res.send('Not found')
-})*/
-
-/*app.get('/api/sale', function (req, res) {
-    sql.connect('Server=10.3.1.3,1433;Database=;User Id=sa;Password=;Encrypt=false', function () {
-        var request = new sql.Request();
-        request.query('SELECT * FROM [communa].[dbo].[t_recline] where recdate like \'%2022-07-14%\'  order by recdate, rectime', function (err, resp) {
-            if (err) console.log(err);
-            res.json(resp.recordset); // СЂРµР·СѓР»СЊС‚Р°С‚ РІ С„РѕСЂРјР°С‚Рµ JSON
-            sql.close(); // Р·Р°РєСЂС‹РІР°РµРј СЃРѕРµРґРёРЅРµРЅРёРµ СЃ Р±Р°Р·РѕР№ РґР°РЅРЅС‹С…
-        });
-    });
-});*/
-
-/*app.use('/api/pk_bot.get_bot_sessions', function (req, res) {
-    async function run() {
-
-        let connection;
-
-        try {
-            connection = await oracledb.getConnection(dbConfig);
-
-            await (connection);  // create the demo table
-
-            const sql =
-                `select * from t_pok_bot_sessions order by id desc`;
-
-            let result;
-
-            //result = await connection.execute(sql);
-
-            result = await connection.execute(
-                sql,
-                [], // A bind parameter is needed to disambiguate the following options parameter and avoid ORA-01036
-                {
-                    outFormat: oracledb.OUT_FORMAT_OBJECT,     // outFormat can be OBJECT or ARRAY.  The default is ARRAY
-                    // prefetchRows:   100,                    // internal buffer allocation size for tuning
-                    // fetchArraySize: 100                     // internal buffer allocation size for tuning
-                }
-            );
-            res.json(result.rows); // СЂРµР·СѓР»СЊС‚Р°С‚ РІ С„РѕСЂРјР°С‚Рµ JSON
-            //console.log(result.rows);
-
-        } catch (err) {
-            console.error(err);
-        } finally {
-            if (connection) {
-                try {
-                    // Connections should always be released when not needed
-                    await connection.close();
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-        }
-    }
-    run();
-})*/
-
-//БАЛАНС СЧЕТА
-app.use('/api/balance', function (req, res) {
-    let otb;
-
-    async function run_balance() {
-        await (async () => {
-            try {
-                const request = await require('request');
-
-                var options = {
-                    url: 'https://business.tinkoff.ru/openapi/api/v3/bank-accounts',
-                    method: 'GET',
-                    Authorization: 'Bearer',
-                    headers: {
-                        'Authorization': 'Bearer',
-                        'accountNumber': '',
-                        'Content-Type': 'application/json',
-                    }
-                };
-
-                var callback = (error, response, body) => {
-                    //otb=String(body['balance'['balance']['otb']})
-                    var obj = JSON.parse(body);
-                    return res.json(obj);
-                    /*var balance = Number(obj[0]['balance']['otb'])
-                    var summa = new Number
-                    summa = 26617.98
-                    if (summa < balance) {
-                        return res.status(200).json({
-                            balance,
-                            message: "Поступление"
-                        })
-                    } else {
-                        console.log(balance)
-                        return res.status(200).json({
-                            balance,
-                            message: "Нет изменений"
-                        })
-                    }*/
-                    //var keys = Object.keys(obj);
-                    // for (var i = 0; i < keys.length; i++) {
-
-                    //obj[keys[i]]
-                    //}
-                    //console.log(otb);
-
-                }
-                request(options, callback);
-            } catch (error) {
-                console.log(error.response.body);
-            }
-
-        })();
-    }
-
-    run_balance();
-
-})
-
-//Получение IAM токена
 async function getIamToken() {
     await (async () => {
         try {
@@ -353,9 +198,7 @@ async function getIamToken() {
             };
 
             var callback = (error, response, body) => {
-                //console.log(body['iamToken']);
                 iamToken = body['iamToken']
-                console.log(iamToken)
             }
             request(options, callback);
         } catch (error) {
@@ -366,16 +209,6 @@ async function getIamToken() {
 }
 
 getIamToken().then(r => this)
-
-//let timerId = setInterval(() => getIamToken(), '1m');
-
-/*var job = new CronJob(
-    '0 /1 * * * *',
-    getIamToken(),
-    null,
-    true,
-    'Europe/Astrakhan'
-);*/
 
 cron.schedule('0 */50 * * *', function () {
     getIamToken().then(r => (this))
@@ -424,19 +257,6 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
         let phoneNum = req.body.phonenum;
 
 //--------------------------------НУЛИ-------------------------------------------------
-        /*ls_text = ls_text.replace(' ноль один ','01');
-        ls_text = ls_text.replace(' ноль два ','02');
-        ls_text = ls_text.replace(' ноль три ','03');
-        ls_text = ls_text.replace(' ноль четыре ','04');
-        ls_text = ls_text.replace(' ноль пять ','05');
-        ls_text = ls_text.replace(' ноль шесть ','06');
-        ls_text = ls_text.replace(' ноль семь ','07');
-        ls_text = ls_text.replace(' ноль восемь ','08');
-        ls_text = ls_text.replace(' ноль девять ','09');
-        ls_text = ls_text.replace(' ноль десять ','010');
-        ls_text = ls_text.replace(' ноль одинадцать ','011');
-        ls_text = ls_text.replace(' ноль двенадцать ','012');*/
-
         ls_text = ls_text.replace('ноль', '0');
 
         ls_text = ls_text.replace('два нуля', '00');
@@ -1516,33 +1336,7 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
         ls_text = ls_text.replace('девять раза девятки', '999999999');
 
         console.log(ls_text)
-        //return ls_text
-        /*let pathName = `jsons/${phoneNum}`;
-        if (!fs.existsSync(pathName)) {
-            fs.mkdir(pathName, err => {
-                if (err) throw err; // не удалось создать папку
-                console.log('ЗАПИСЬ - Отсутствовала и Папка успешно создана');
-            });
-        } else {
-            console.log(`ЗАПИСЬ - Error - Папка ${pathName} уже существует`)
-            var targetRemoveFiles = fs.readdirSync(`jsons/${phoneNum}`);
-
-            for (var file in targetRemoveFiles) {
-                fs.unlinkSync(`jsons/${phoneNum}/` + targetRemoveFiles[file]);
-            }
-
-
-            fs.rmdir(`jsons/${phoneNum}`, err => {
-                if (err) throw err; // не удалось удалить папку
-                console.log('ЗАПИСЬ - Папка успешно удалена');
-            });
-
-            fs.mkdir(`jsons/${phoneNum}`, err => {
-                if (err) throw err; // не удалось создать папку
-                console.log('ЗАПИСЬ - Папка успешно создана после удаления');
-            });
-
-        }*/
+     
         let fileName = `lsnum_yapi_json_${phoneNum}.json`;
         if (fs.existsSync(fileName)) {
             fs.unlinkSync(fileName);
@@ -1562,7 +1356,7 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
                         texts: [
                             ls_text
                         ],
-                        folderId: "b1gnj3tqjnuor6rj0v2m"
+                        folderId: "folderId"
                     },
                     method: 'POST',
                     headers: {
@@ -1581,18 +1375,7 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
 
                     let data = JSON.stringify(lsnum_yapi_json);
                     console.log(lsnum_yapi_json);
-                    //fs.writeFileSync('./' + pathName + '/lsnum_yapi_json.json', data);
                     return res.status(200).json(lsnum_yapi_json);
-
-                    /*fs.writeFileSync(fileName, data);
-                    console.log('-----Файл создан-----')
-                    let dataJsonFile = fs.readFile(fileName, "utf8", function (error, data) {
-                        console.log("Асинхронное чтение файла ПОСЛЕ СОЗДАНИЯ");
-                        if (error) throw error; // если возникла ошибка
-                        console.log(data);  // выводим считанные данные
-                        return res.status(200).json(data);
-                    });*/
-
                 }
                 request(options, callback);
             } catch (e) {
@@ -1602,15 +1385,12 @@ app.use('/api/:token/pk_bot.texttonum', function (req, res) {
     }
 
     run_translate()
-
-    //return res.status(205).send();
 })
 
 //Подготовка Лицевого счета
 app.use('/api/:token/pk_bot.readjsonfile', function (req, res) {
     req.params.token = tokenKey
     var phoneNum = req.body.phonenum;
-    //var data = '';
     var lsnumJson = '';
     let pathName = `jsons/${phoneNum}`;
     let fileName = `./lsnum_yapi_json_${phoneNum}.json`;
@@ -1618,57 +1398,19 @@ app.use('/api/:token/pk_bot.readjsonfile', function (req, res) {
     console.log(phoneNum)
 
     async function readJsonFile() {
-        //const lsnumJsonFile =`C:\\Users\\admin\\WebstormProjects\\cr30api\\jsons\\${phoneNum}\\lsnum_yapi_json.json`;
-        console.log('-----ОТКРЫТИЕ ЧТЕНИЕ ФАЙЛА -----')
         fileJson = fs.readFileSync(fileName, "utf8",
             function (error, data) {
                 console.log("Асинхронное чтение файла");
                 if (error) throw error; // если возникла ошибка
                 console.log(data);  // выводим считанные данные
                 lsnumJson = JSON.stringify(data);
-
-
             });
         console.log('После чтения --- ' + fileJson)
         lsnumJson = JSON.parse(fileJson);
-
-        //if (!fileJson) {
-        //    console.log('ФАЙЛ НЕ СУЩЕСТВУЕТ')
-        //   return res.status(200).json({
-        //       lsnum: 0
-        //    });
-        //}
-        /*else {
-            console.log('ФАЙЛ СУЩЕСТВУЕТ -> ЧИТАЕМ ФАЙЛ')
-            const dataFile = fs.readFileSync(fileName, "utf8");
-
-            console.log(dataFile)
-
-            lsnumJson = JSON.stringify(dataFile);
-            console.log(lsnumJson)
-
-            return res.status(200).json(lsnumJson);*/
-
-
-        //var targetRemoveFiles = fs.readdirSync(`jsons/${phoneNum}`);
-
-        //for (var file in targetRemoveFiles) {
-        //     fs.unlinkSync(`./jsons/${phoneNum}/` + targetRemoveFiles[file]);
-        // }
-
-        /*fs.rmdir(`jsons/${phoneNum}`, err => {
-            if (err) throw err; // не удалось удалить папку
-            console.log('После чтения папка успешно удалена');
-        });*/
-        //Отправляем ответ с данными из файла
-        //return res.status(200).json(lsnumJson);
-        //}
-
     }
 
     readJsonFile();
     return res.status(200).json(lsnumJson);
-    // next()
 })
 
 
@@ -1688,7 +1430,6 @@ app.post('/api/:token/pk_bot.lsnumsplit', function (req, res, next) {
             res.status(404).send();
         }
     }
-
     run_translate()
 })
 
@@ -1761,7 +1502,6 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
 
 
         } else {
-            console.log('должен быть 9 ' + strLs)
             return res.status(200).json({
                 lsnumber: 300,
                 status: false,
@@ -1774,10 +1514,8 @@ app.post('/api/:token/pk_bot.get_ls', function (req, res) {
 })
 
 //ПРОВЕРКА НАЛИЧИЯ ИПУ
-//https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_act=3&_lssernum=${lsnumber}&_cntsernum=${cntsernumbr}&_phone_num=${chat_id}
 app.use('/api/:token/pk_bot.get_ipu', function (req, res) {
     req.params.token = tokenKey;
-    console.log('dfdfdfdf')
     let lsNum = req.body.ls;
     let cntSerialNum = String(req.body.cntsernumber);
 
@@ -1809,7 +1547,6 @@ app.use('/api/:token/pk_bot.get_ipu', function (req, res) {
                 }
             );
             let cntcount = result.rows[0]['CNTCOUNT'];
-            console.log('1- Найдено ИПУ количество: ' + cntcount);
 
             if (cntcount > 0) {
 
@@ -1817,7 +1554,6 @@ app.use('/api/:token/pk_bot.get_ipu', function (req, res) {
                     serial_num: cntSerialNum
                 })
             } else {
-                console.log('3-ИПУ не найдено: ' + cntcount);
                 return res.status(200).json({
                     serial_num: 0,
                     status: false,
@@ -1842,9 +1578,6 @@ app.use('/api/:token/pk_bot.get_ipu', function (req, res) {
 })
 
 //ПЕРЕДАЧА ПОКАЗАНИЙ
-//https://lk.cr30.ru/get?token=c549a7-42bd48-a5429f-d5e356-422f23&_pok_act=3&_pok_lssernum=${lsnumber}&_pok_cntsernum=${cntsernumres}&_pok_cntvalue=${cntvalue}&_pok_phone=${chat_id}
-//
-
 app.put('/api/:token/pk_bot.put_cnt_value', function (req, res) {
     req.params.token = tokenKey
     let lsnum = String(req.body.ls)
@@ -1876,7 +1609,7 @@ app.put('/api/:token/pk_bot.put_cnt_value', function (req, res) {
                 sqlInsertValue,
                 {
                     sgregid: 999999,
-                    ipaddr: '188.124.55.5',
+                    ipaddr: 'IP',
                     lsnum: lsnum,
                     lsdf: serial_num,
                     lsdk: null,
@@ -1901,7 +1634,6 @@ app.put('/api/:token/pk_bot.put_cnt_value', function (req, res) {
             }
         }
     }
-
 
     async function run() {
 
@@ -1928,7 +1660,7 @@ app.put('/api/:token/pk_bot.put_cnt_value', function (req, res) {
 
             let shortValResult = resultShortValue.rows[0]['SHORT_VALUE']
             let valueResult = short_val - shortValResult
-            console.log('Разность = ' + valueResult)
+
             if (userallow == 0) {
                 if (short_val < shortValResult) {
                     console.log("Передаваемые показания меньше учтенных - " + shortValResult)
@@ -2024,93 +1756,5 @@ app.use('/api/pk_bot.get_bot_session/:id', function (req, res) {
 
     run();
 })
-
-/*
-app.use('/api/pk_bot.get_bot_session/:id', function (req, res) {
-    let lsid = Number(req.params.id);
-    console.log(lsid);
-    async function run() {
-
-        let connection;
-
-        try {
-            connection = await oracledb.getConnection(dbConfig);
-
-            await (connection);  // create the demo table
-
-            const sql =
-                `select * from sg_reg where LS = :idls   order by id desc`;
-
-            let result;
-
-            result = await connection.execute(
-                sql,
-                [lsid], // A bind parameter is needed to disambiguate the following options parameter and avoid ORA-01036
-                {
-                    outFormat: oracledb.OUT_FORMAT_OBJECT,     // outFormat can be OBJECT or ARRAY.  The default is ARRAY
-                    // prefetchRows:   100,                    // internal buffer allocation size for tuning
-                    // fetchArraySize: 100                     // internal buffer allocation size for tuning
-                }
-            );
-            res.json(result.rows); // СЂРµР·СѓР»СЊС‚Р°С‚ РІ С„РѕСЂРјР°С‚Рµ JSON
-        } catch (err) {
-            console.error(err);
-        } finally {
-            if (connection) {
-                try {
-                    // Connections should always be released when not needed
-                    await connection.close();
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-        }
-    }
-    run();
-})
-
-app.use('/api/pk_bot.get_bot_session/:id/info', function (req, res) {
-    let lsid=  Number(req.params.id);
-    console.log(lsid);
-    async function run() {
-
-        let connection;
-
-        try {
-            connection = await oracledb.getConnection(dbConfig);
-
-            await (connection);  // create the demo table
-
-            const sql =
-                `select * from sg_reg where LS = :idls order by id asc`;
-
-            let result;
-
-            result = await connection.execute(
-                sql,
-                [lsid], // A bind parameter is needed to disambiguate the following options parameter and avoid ORA-01036
-                {
-                    outFormat: oracledb.OUT_FORMAT_OBJECT,     // outFormat can be OBJECT or ARRAY.  The default is ARRAY
-                    // prefetchRows:   100,                    // internal buffer allocation size for tuning
-                    // fetchArraySize: 100                     // internal buffer allocation size for tuning
-                }
-            );
-            res.json(result.rows); // СЂРµР·СѓР»СЊС‚Р°С‚ РІ С„РѕСЂРјР°С‚Рµ JSON
-        } catch (err) {
-            console.error(err);
-        } finally {
-            if (connection) {
-                try {
-                    // Connections should always be released when not needed
-                    await connection.close();
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-        }
-    }
-    run();
-})
-*/
 
 
